@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2015-04-30T17:27:32Z" product-name="privacyidea_auth">
+		<header/>
+		<body>
+			<trans-unit id="tx_privacyidea_domain_model_privacyideaauth">
+				<source>Privacy I D E A Auth</source>
+			</trans-unit>
+			<trans-unit id="ext.privacyidea.beMode.disabled">
+				<source>Disabled</source>
+			</trans-unit>
+			<trans-unit id="ext.privacyidea.beMode.adminOnly">
+				<source>Only for administrators</source>
+			</trans-unit>
+			<trans-unit id="ext.privacyidea.beMode.allUsers">
+				<source>All backend users</source>
+			</trans-unit>
+
+			<trans-unit id="login.title">
+				<source>Two factor authentication</source>
+			</trans-unit>
+			<trans-unit id="login.text">
+				<source>Please enter your authenticator token.</source>
+			</trans-unit>
+			<trans-unit id="login.submit">
+				<source>Validate token</source>
+			</trans-unit>
+			<trans-unit id="login.error.message">
+				<source>Failed to validate the token</source>
+			</trans-unit>
+			<trans-unit id="login.error.description">
+				<source>Your token could not be validated. Please try again.</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

@@ -1,0 +1,16 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
+
+<f:layout name="Default"/>
+
+<f:section name="Content">
+	<h1><f:translate key="login.title" extensionName="privacyidea_auth"/></h1>
+	<p><f:translate key="login.text" extensionName="privacyidea_auth"/></p>
+	<div class="form-group t3js-login-password-section" id="t3-login-password-section">
+		<div class="form-control-wrap">
+			<div class="form-control-holder">
+				<input type="password" id="t3-onetimesecret" name="oneTimeSecret" value="{token}" placeholder="Token" class="form-control input-login t3js-clearable t3js-login-password-field" required="required" data-rsa-encryption="t3-field-userident"/>
+			</div>
+		</div>
+	</div>
+</f:section>
+</html>

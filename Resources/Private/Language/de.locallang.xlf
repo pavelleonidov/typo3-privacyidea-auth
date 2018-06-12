@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" target-language="de" datatype="plaintext" original="messages" date="2015-04-30T17:27:32Z" product-name="privacyidea_auth">
+		<header/>
+		<body>
+			<trans-unit id="tx_privacyidea_domain_model_privacyideaauth">
+				<source>Privacy I D E A Auth</source>
+			</trans-unit>
+			<trans-unit id="ext.privacyidea.beMode.disabled">
+				<source>Disabled</source>
+				<target>Deaktiviert</target>
+			</trans-unit>
+			<trans-unit id="ext.privacyidea.beMode.adminOnly">
+				<source>Only for administrators</source>
+				<target>Nur für Administratoren</target>
+			</trans-unit>
+			<trans-unit id="ext.privacyidea.beMode.allUsers">
+				<source>All backend users</source>
+				<target>Alle Backend-User</target>
+			</trans-unit>
+
+			<trans-unit id="login.title">
+				<source>Two factor authentication</source>
+				<target>Zwei-Faktor-Authentifizierung</target>
+			</trans-unit>
+			<trans-unit id="login.text">
+				<source>Please enter your authenticator token.</source>
+				<target>Bitte geben Sie den Authentifizierungstoken ein.</target>
+			</trans-unit>
+			<trans-unit id="login.submit">
+				<source>Validate token</source>
+				<target>Token validieren</target>
+			</trans-unit>
+			<trans-unit id="login.error.message">
+				<source>Failed to validate the token</source>
+				<target>Validierung des Tokens ist fehlgeschlagen</target>
+			</trans-unit>
+			<trans-unit id="login.error.description">
+				<source>Your token could not be validated. Please try again.</source>
+				<target>Ihr Token konnte nicht validiert werden. Versuchen Sie es noch einmal.</target>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

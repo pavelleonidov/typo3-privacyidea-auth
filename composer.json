@@ -1,0 +1,47 @@
+{
+  "name": "pavelleonidov/privacyidea-auth",
+  "type": "typo3-cms-extension",
+  "description": "Two-Factor-Authentication against a running privacyIDEA service",
+  "homepage": "http://www.pavel-leonidov.de",
+  "license": ["GPL-2.0+"],
+  "version": "1.0.0",
+  "require": {
+	"typo3/cms-core": ">=7.6",
+	"typo3/cms-fluid-styled-content": "*",
+	"mosaiq/mq-foundation": "dev-master"
+  },
+  "authors": [
+	{
+	  "name": "Pavel Leonidov",
+	  "role": "Developer"
+	}
+  ],
+  "autoload": {
+	"psr-4": {
+	  "PavelLeonidov\\PrivacyideaAuth\\": "Classes"
+	}
+  },
+  "replace": {
+	"privacyidea_auth": "self.version"
+  },
+  "config": {
+	"vendor-dir": ".Build/vendor",
+	"bin-dir": ".Build/bin"
+  },
+  "scripts": {
+	"post-autoload-dump": [
+	  "mkdir -p .Build/Web/typo3conf/ext/",
+	  "[ -L .Build/Web/typo3conf/ext/privacyidea_auth ] || ln -snvf ../../../../. .Build/Web/typo3conf/ext/privacyidea_auth"
+	]
+  },
+  "extra": {
+	"branch-alias": {
+	  "dev-master": "master"
+	},
+	"typo3/cms": {
+	  "cms-package-dir": "{$vendor-dir}/typo3/cms",
+	  "web-dir": ".Build/Web"
+	}
+  }
+}
+
