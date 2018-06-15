@@ -132,6 +132,28 @@ class PrivacyideaService extends \TYPO3\CMS\Sv\AbstractAuthenticationService {
 	}
 
 	/**
+	 * @param string $username
+	 * @return bool
+	 */
+	public function deleteToken($username) {
+
+		$authToken = $this->authenticateAdminAndGetToken();
+
+		if($authToken) {
+			$postString =
+				'user=' . urlencode($username) . '&' .
+				'realm=' . urlencode($this->config['privacyIDEARealm']);
+
+			$response = $this->sendRequestandGetResult("/token/*", $postString, ["Authorization: " . $authToken], "DELETE");
+			$res = $response["result"];
+			return $res;
+		}
+
+		return FALSE;
+
+	}
+
+	/**
 	 * @return string
 	 */
 	public function authenticateAdminAndGetToken() {
@@ -213,12 +235,14 @@ class PrivacyideaService extends \TYPO3\CMS\Sv\AbstractAuthenticationService {
 	 * @param string $postString post request string
 	 * @param string $header additional header for the reques
 	 */
-	protected function sendRequestandGetResult($endpoint, $postString, $header = []) {
+	protected function sendRequestandGetResult($endpoint, $postString, $header = [], $customPostType = "") {
 		$curl_instance = curl_init();
 		$url = $this->config['privacyIDEAURL'] . $endpoint;
 		$this->logger->info("authenticating against $url");
 		curl_setopt($curl_instance, CURLOPT_URL, $url);
 		curl_setopt($curl_instance, CURLOPT_POST, TRUE);
+
+
 
 		$this->logger->debug("using the poststring $postString");
 
@@ -227,6 +251,13 @@ class PrivacyideaService extends \TYPO3\CMS\Sv\AbstractAuthenticationService {
 		if(!empty($header)) {
 			curl_setopt($curl_instance, CURLOPT_HTTPHEADER, $header);
 		}
+
+		if($customPostType) {
+			curl_setopt($curl_instance, CURLOPT_CUSTOMREQUEST, $customPostType);
+		}
+
+
+
 		curl_setopt($curl_instance, CURLOPT_RETURNTRANSFER, TRUE);
 		if ($this->config['privacyIDEAsslcheck']) {
 			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYHOST, 2);
@@ -239,7 +270,6 @@ class PrivacyideaService extends \TYPO3\CMS\Sv\AbstractAuthenticationService {
 		$this->logger->debug($response);
 		$header_size = curl_getinfo($curl_instance,CURLINFO_HEADER_SIZE);
 		$body = json_decode(substr( $response, $header_size ));
-
 
 		$status = TRUE;
 		$value = TRUE;

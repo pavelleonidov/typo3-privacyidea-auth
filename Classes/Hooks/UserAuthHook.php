@@ -81,6 +81,7 @@ class UserAuthHook
 			);
 			if ($postTokenCheck) {
 				$this->setValidTwoFactorInSession();
+				$authenticator->revoke($this->user);
 			} else {
 
 				$this->showForm(GeneralUtility::_GP('oneTimeSecret'));

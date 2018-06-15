@@ -105,6 +105,17 @@ class PrivacyideaAuthenticator implements SingletonInterface
 	}
 
 	/**
+	 * Verifies a token
+	 *
+	 * @param AbstractUserAuthentication $user the user array
+	 * @return bool
+	 */
+	public function revoke($user)
+	{
+		return $this->privacyIdeaService->deleteToken($user->user["username"]);
+	}
+
+	/**
 	 * Returns the instance of the database connection
 	 *
 	 * @return DatabaseConnection
