@@ -3,6 +3,9 @@
 	<file t3:id="2371932330" source-language="en" datatype="plaintext" original="messages" date="2016-06-07T02:38:00Z" product-name="privacyidea">
 		<header/>
 		<body>
+			<trans-unit id="privacyidea.config.activateTwoFactorAuthentication">
+				<source>Enable privacyIDEA authentication for TYPO3 backend users</source>
+			</trans-unit>
 			<trans-unit id="privacyidea.config.privacyIDEABackend">
 				<source>Enable privacyIDEA authentication for TYPO3 backend users</source>
 			</trans-unit>
@@ -22,7 +25,7 @@
 				<source>Devlog: Write Debug Information to devlog</source>
 			</trans-unit>
 			<trans-unit id="privacyidea.config.privacyIDEApassthru">
-				<source>Pass to other authentication module:In case that privacyIDEA fails to authenticate the user the authentication request is passed to the next authentication module.</source>
+				<source>Pass to the default authentication mode in case the privacyIDEA server is not reachable or the token cannot be generated</source>
 			</trans-unit>
 			<trans-unit id="privacyidea.config.excludeIpAddresses">
 				<source>Exclude IP addresses (comma separated) from two-factor authentication and proceed with usual method for those addresses</source>

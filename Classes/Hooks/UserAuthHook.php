@@ -27,6 +27,7 @@ namespace PavelLeonidov\PrivacyideaAuth\Hooks;
  ******************************************************************/
 
 use PavelLeonidov\PrivacyideaAuth\Auth\PrivacyideaAuthenticator;
+use PavelLeonidov\PrivacyideaAuth\Service\ConfigurationService;
 use Tx\Authenticator\Auth\TokenAuthenticator;
 use TYPO3\CMS\Backend\Template\DocumentTemplate;
 use TYPO3\CMS\Core\Authentication\AbstractUserAuthentication;
@@ -59,7 +60,7 @@ class UserAuthHook
 	protected $logger = NULL;
 
 	/**
-	 * Check if authentication is needed and validate the secret
+	 * Check if authentication is needed and validate the token
 	 *
 	 * @param array $params
 	 * @param AbstractUserAuthentication $user
@@ -70,7 +71,6 @@ class UserAuthHook
 	{
 		$this->user = $user;
 		$this->initializeConfiguration();
-
 
 
 		if ($this->canAuthenticate() && $this->needsAuthentication() && $this->isOutsideExcludeRange()) {
@@ -87,6 +87,7 @@ class UserAuthHook
 			}
 		}
 	}
+
 
 	/**
 	 * Check for a valid user, enabled two factor authentication and if a secret is set
@@ -106,7 +107,10 @@ class UserAuthHook
 	 */
 	protected function needsAuthentication()
 	{
-		return $this->user->getSessionData('authenticatorIsValidTwoFactor') !== true;
+		$validatedInSession = $this->user->getSessionData('authenticatorIsValidTwoFactor') !== true;
+		$isBackendTwoFactorActivated = isset($this->config['privacyIDEABackend']) && in_array($this->config['privacyIDEABackend'], ['allUsers', 'adminOnly']);
+		$twoFactorDeactivatedByFile = file_exists(PATH_site . 'deactivateTwoFactor');
+		return $validatedInSession && $isBackendTwoFactorActivated && !$twoFactorDeactivatedByFile;
 	}
 
 	/**
@@ -307,32 +311,8 @@ class UserAuthHook
 
 		$this->logger = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(LogManager::class)->getLogger(__CLASS__);
 
-		$available = FALSE;
-		$extConf = unserialize ($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['privacyidea_auth']);
-
-		if (isset($extConf['privacyIDEABackend']) && $extConf['privacyIDEABackend'] == 'allUsers' && TYPO3_MODE == 'BE') {
-			$available = TRUE;
-			$this->config['privacyIDEABackend'] = 'allUsers';
-		} elseif (isset($extConf['privacyIDEABackend']) && $extConf['privacyIDEABackend'] == 'adminOnly' && TYPO3_MODE == 'BE') {
-			$this->logger->info("Authenticating with privacyIDEA at the Backend (Admin Users)");
-			$this->config['privacyIDEABackend'] = 'adminOnly';
-			$available = TRUE;
-		} elseif (isset($extConf['privacyIDEAFrontend']) && (bool)$extConf['privacyIDEAFrontend'] && TYPO3_MODE == 'FE') {
-			$this->logger->info("Authenticating with privacyIDEA at the Frontend");
-			$this->config['privacyIDEAFrontend'] = true;
-			$available = TRUE;
-		} else {
-			$this->logger->warning("privacyIDEA Service deactivated.");
-		}
-
-		$this->config['privacyIDEARealm'] = $extConf["privacyIDEARealm"];
-		$this->config["privacyIDEAsslcheck"] = $extConf["privacyIDEACertCheck"];
-		$this->config["privacyIDEAURL"] = $extConf["privacyIDEAURL"];
-		if($extConf['excludeIpAddresses']) {
-			$this->config["excludeIpAddresses"] = GeneralUtility::trimExplode(',', $extConf['excludeIpAddresses']);
-		}
-
-		return $available;
+		$configurationService = GeneralUtility::makeInstance(ConfigurationService::class);
+		$this->config = $configurationService->getExtConfiguration();
 	}
 }
 

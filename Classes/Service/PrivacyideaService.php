@@ -55,7 +55,7 @@ class PrivacyideaService extends \TYPO3\CMS\Sv\AbstractAuthenticationService {
 	 *
 	 * @var string
 	 */
-	public $extKey = 'privacyidea';
+	public $extKey = 'privacyidea_auth';
 
 	/**
 	 * Standard prefix id for the service
@@ -94,148 +94,57 @@ class PrivacyideaService extends \TYPO3\CMS\Sv\AbstractAuthenticationService {
 	 * @return bool
 	 */
 	public function checkOtp($username, $password) {
-		$curl_instance = curl_init();
-		$url = $this->config['privacyIDEAURL'] . '/validate/check';
-		$this->logger->info("authenticating against $url");
-		curl_setopt($curl_instance, CURLOPT_URL, $url);
-		curl_setopt($curl_instance, CURLOPT_POST, TRUE);
-		$poststring =
+
+		$postString =
 			'user=' . urlencode($username) . '&' .
 			'pass=' . urlencode($password) . '&' .
 			'realm=' . urlencode($this->config['privacyIDEARealm']);
-		$this->logger->debug("using the poststring $poststring");
+		$response = $this->sendRequestandGetResult("/validate/check", $postString);
 
-
-		curl_setopt($curl_instance, CURLOPT_POSTFIELDS, $poststring);
-		curl_setopt($curl_instance, CURLOPT_HEADER, TRUE);
-		curl_setopt($curl_instance, CURLOPT_RETURNTRANSFER, TRUE);
-		if ($this->config['privacyIDEAsslcheck']) {
-			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYHOST, 2);
-			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYPEER, 1);
-		} else {
-			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYHOST, 0);
-			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYPEER, 0);
-		}
-		$response = curl_exec($curl_instance);
-		$this->logger->debug($response);
-		$header_size = curl_getinfo($curl_instance,CURLINFO_HEADER_SIZE);
-		$body = json_decode(substr( $response, $header_size ));
-
-
-
-		$status = TRUE;
-		$value = TRUE;
-
-		try {
-			$status = $body->result->status;
-			$value = $body->result->value;
-			$res = $value;
-		} catch (\Exception $e) {
-			$this->logger->error($e);
-			$res = FALSE;
-		}
-		return $res;
+		return $response["result"];
 	}
 
 	/**
 	 * @param string $username
+	 * @param string $email
 	 * @param string $password
 	 * @return bool
 	 */
-	public function enrollToken($username, $password) {
+	public function enrollToken($username, $email, $password) {
 
 		$token = $this->authenticateAdminAndGetToken();
+		$res = FALSE;
 
 		if($token) {
-			$curl_instance = curl_init();
-			$url = $this->config['privacyIDEAURL'] . '/token/init';
-			$this->logger->info("authenticating against $url");
-			curl_setopt($curl_instance, CURLOPT_URL, $url);
-			curl_setopt($curl_instance, CURLOPT_POST, TRUE);
-			$poststring =
+			$postString =
 				'user=' . urlencode($username) . '&' .
-				'email=' . urlencode($username) . '&' .
+				'email=' . urlencode($email) . '&' .
 				'pin=' . urlencode($password) . '&' .
 				'realm=' . urlencode($this->config['privacyIDEARealm']) . '&' .
 				'genkey=true&hashlib=sha256&dynamic_email=true&otplen=6&type=email';
-			$this->logger->debug("using the poststring $poststring");
 
+			$response = $this->sendRequestandGetResult("/token/init", $postString, ['Authorization: ' . $token]);
 
-			curl_setopt($curl_instance, CURLOPT_POSTFIELDS, $poststring);
-			curl_setopt($curl_instance, CURLOPT_HEADER, TRUE);
-			curl_setopt($curl_instance, CURLOPT_HTTPHEADER, ['Authorization: ' . $token]);
-			curl_setopt($curl_instance, CURLOPT_RETURNTRANSFER, TRUE);
-			if ($this->config['privacyIDEAsslcheck']) {
-				curl_setopt($curl_instance, CURLOPT_SSL_VERIFYHOST, 2);
-				curl_setopt($curl_instance, CURLOPT_SSL_VERIFYPEER, 1);
-			} else {
-				curl_setopt($curl_instance, CURLOPT_SSL_VERIFYHOST, 0);
-				curl_setopt($curl_instance, CURLOPT_SSL_VERIFYPEER, 0);
-			}
-			$response = curl_exec($curl_instance);
-			$this->logger->debug($response);
-			$header_size = curl_getinfo($curl_instance,CURLINFO_HEADER_SIZE);
-			$body = json_decode(substr( $response, $header_size ));
+			$res = $response["result"];
 
-
-			$status = TRUE;
-			$value = TRUE;
-
-			try {
-				$status = $body->result->status;
-				$value = $body->result->value;
-				$res = $value;
-			} catch (\Exception $e) {
-				$this->logger->error($e);
-				$res = FALSE;
-			}
-			return $res;
-		} else {
-			return false;
 		}
-
+		return $res;
 	}
 
 	/**
 	 * @return string
 	 */
 	public function authenticateAdminAndGetToken() {
-		$curl_instance = curl_init();
-		$url = $this->config['privacyIDEAURL'] . '/auth';
-		$this->logger->info("authenticating against $url");
-		curl_setopt($curl_instance, CURLOPT_URL, $url);
-		curl_setopt($curl_instance, CURLOPT_POST, TRUE);
-		$poststring =
-			'username=admin&' .
-			'password=rc2433';
-		$this->logger->debug("using the poststring $poststring");
+		$postString = 'username=' . $this->config["privacyIDEAAdmin"] . '&password=' . $this->config["privacyIDEAPassword"];
+		$response = $this->sendRequestandGetResult("/auth", $postString);
 
-		curl_setopt($curl_instance, CURLOPT_POSTFIELDS, $poststring);
-		curl_setopt($curl_instance, CURLOPT_HEADER, TRUE);
-		curl_setopt($curl_instance, CURLOPT_RETURNTRANSFER, TRUE);
-		if ($this->config['privacyIDEAsslcheck']) {
-			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYHOST, 2);
-			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYPEER, 1);
-		} else {
-			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYHOST, 0);
-			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYPEER, 0);
+		$token = "";
+
+		if($response["result"]) {
+			$token = $response["body"]->result->value->token;
 		}
-		$response = curl_exec($curl_instance);
-		$this->logger->debug($response);
-		$header_size = curl_getinfo($curl_instance,CURLINFO_HEADER_SIZE);
-		$body = json_decode(substr( $response, $header_size ));
 
-		$token = $body->result->value->token;
-
-		try {
-			$status = $body->result->status;
-			$value = $body->result->value;
-			$res = $token;
-		} catch (\Exception $e) {
-			$this->logger->error($e);
-			$res = "";
-		}
-		return $res;
+		return $token;
 	}
 
 	/**
@@ -243,57 +152,45 @@ class PrivacyideaService extends \TYPO3\CMS\Sv\AbstractAuthenticationService {
 	 *
 	 * Will return one of following authentication status codes:
 	 *  - 0 - authentication failure
-	 *  - 100 - just go on. User is not authenticated but there is still no reason to stop
-	 *  - 200 - the service was able to authenticate the user
+	 *  - 100 - proceed with default authentication (will call the postUserLookUp hook)
 	 *
 	 * @param array $user Array containing the userdata
-	 * @return int authentication statuscode, one of 0, 100 and 200
+	 * @return int authentication statuscode, either 0 or 100
 	 */
 	public function authUser(array $user) {
 
-		if($this->isOutsideExcludeRange()) {
+		if($this->isOutsideExcludeRange() && isset($this->config['privacyIDEABackend']) && in_array($this->config['privacyIDEABackend'], ['allUsers', 'adminOnly'])) {
 			$username = $user['username'];
 			$password = $user['password'];
+			$email = $user['email'];
+
 			// Enroll email token and initial challenge trigger
-			$this->enrollToken($username, $password);
-			$authResult = $this->checkOtp($username, $password);
+			$success = $this->enrollToken($username, $email, $password);
+			if(!$success) {
+				if($this->config["privacyIDEAPassthru"]) {
+					return 100;
+				} else {
+					return 0;
+				}
+			} else {
+				$this->checkOtp($username, $password);
+				return 100;
+			}
+		} else {
+			return 100;
 		}
-		// always return default authentication method
-		return 100;
 	}
 
+
+	/**
+	 * Initialize extConf
+	 */
 	protected function initializeConfiguration() {
 
 		$this->logger = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(LogManager::class)->getLogger(__CLASS__);
 
-		$available = FALSE;
-		$extConf = unserialize ($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['privacyidea_auth']);
-
-		if (isset($extConf['privacyIDEABackend']) && $extConf['privacyIDEABackend'] == 'allUsers' && TYPO3_MODE == 'BE') {
-			$available = TRUE;
-			$this->config['privacyIDEABackend'] = 'allUsers';
-		} elseif (isset($extConf['privacyIDEABackend']) && $extConf['privacyIDEABackend'] == 'adminOnly' && TYPO3_MODE == 'BE') {
-			$this->logger->info("Authenticating with privacyIDEA at the Backend (Admin Users)");
-			$this->config['privacyIDEABackend'] = 'adminOnly';
-			$available = TRUE;
-		} elseif (isset($extConf['privacyIDEAFrontend']) && (bool)$extConf['privacyIDEAFrontend'] && TYPO3_MODE == 'FE') {
-			$this->logger->info("Authenticating with privacyIDEA at the Frontend");
-			$this->config['privacyIDEAFrontend'] = true;
-			$available = TRUE;
-		} else {
-			$this->logger->warning("privacyIDEA Service deactivated.");
-		}
-
-		$this->config['privacyIDEARealm'] = $extConf["privacyIDEARealm"];
-		$this->config["privacyIDEAsslcheck"] = $extConf["privacyIDEACertCheck"];
-		$this->config["privacyIDEAURL"] = $extConf["privacyIDEAURL"];
-		$this->config["privacyIDEAAdmin"] = $extConf["privacyIDEAAdmin"];
-		$this->config["privacyIDEAPassword"] = $extConf["privacyIDEAPassword"];
-		if($extConf['excludeIpAddresses']) {
-			$this->config["excludeIpAddresses"] = GeneralUtility::trimExplode(',', $extConf['excludeIpAddresses']);
-		}
-
-		return $available;
+		$configurationService = GeneralUtility::makeInstance(ConfigurationService::class);
+		$this->config = $configurationService->getExtConfiguration();
 	}
 
 	/**
@@ -307,6 +204,58 @@ class PrivacyideaService extends \TYPO3\CMS\Sv\AbstractAuthenticationService {
 			return !in_array($_SERVER['REMOTE_ADDR'], $this->config['excludeIpAddresses']);
 		}
 		return true;
+	}
+
+	/**
+	 * abstract cURL request method
+	 *
+	 * @param string $endpoint relative endpoint of the privacyIDEA service
+	 * @param string $postString post request string
+	 * @param string $header additional header for the reques
+	 */
+	protected function sendRequestandGetResult($endpoint, $postString, $header = []) {
+		$curl_instance = curl_init();
+		$url = $this->config['privacyIDEAURL'] . $endpoint;
+		$this->logger->info("authenticating against $url");
+		curl_setopt($curl_instance, CURLOPT_URL, $url);
+		curl_setopt($curl_instance, CURLOPT_POST, TRUE);
+
+		$this->logger->debug("using the poststring $postString");
+
+		curl_setopt($curl_instance, CURLOPT_POSTFIELDS, $postString);
+		curl_setopt($curl_instance, CURLOPT_HEADER, TRUE);
+		if(!empty($header)) {
+			curl_setopt($curl_instance, CURLOPT_HTTPHEADER, $header);
+		}
+		curl_setopt($curl_instance, CURLOPT_RETURNTRANSFER, TRUE);
+		if ($this->config['privacyIDEAsslcheck']) {
+			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYHOST, 2);
+			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYPEER, 1);
+		} else {
+			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYHOST, 0);
+			curl_setopt($curl_instance, CURLOPT_SSL_VERIFYPEER, 0);
+		}
+		$response = curl_exec($curl_instance);
+		$this->logger->debug($response);
+		$header_size = curl_getinfo($curl_instance,CURLINFO_HEADER_SIZE);
+		$body = json_decode(substr( $response, $header_size ));
+
+
+		$status = TRUE;
+		$value = TRUE;
+
+		try {
+			$status = $body->result->status;
+			$value = $body->result->value;
+			$res = $value;
+		} catch (\Exception $e) {
+			$this->logger->error($e);
+			$res = FALSE;
+		}
+		return [
+			"result" => $res,
+			"body" => $body
+		];
 	}
 }
 
